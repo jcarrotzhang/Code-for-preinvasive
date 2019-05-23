@@ -25,11 +25,9 @@ sns.set_style("white")
 ### add aneuploidy, arm CNA and immuno scores. ###
 info=pd.read_csv("Analysis/aneuo_arm_immu_scores.txt", delimiter='\t')
 clinical=pd.read_csv("nsclc_tcga_broad_2016/data_clinical.txt", delimiter='\t')
-#OUT=open("/cga/meyerson/home/zhangj/TCGA_geno/an_arm.out", 'w')
 results = pd.merge(clinical, info, on="Sample")
 
 INFO=results.loc[results['Type'] == "LUAD"]
-#arms=INFO[INFO.columns[13:53]]
 smk = INFO["SMOKING_HISTORY"].values
 IMS = INFO["Leuk"].values
 AS = INFO["AneuploidyScore(AS)"].values
@@ -40,7 +38,6 @@ Pu = INFO["Purity"].values
 
 df = pd.DataFrame({"AS": AS, "IMS": IMS, "TMB": TMB})
 df2=df.dropna()
-#df3 = df2[df2["TMB"].astype(float) < 15]
 f = "AS ~ IMS + TMB"
 y, X = patsy.dmatrices(f, df2, return_type='dataframe')
 result = sm.OLS(y, X).fit()
@@ -50,10 +47,6 @@ rho, pval = stats.spearmanr(df2["AS"], df2["IMS"])
 print "AS spearman", rho, pval
 
 p_1={}; p_2={}; p_3={}
-#c={}
-#c["TCGA Leuk. Frac."] = -math.log(float(result.pvalues[1]), 2)
-#p_1["AS"]=c
-#p_3["AS"]=0
 
 for i in arms:
         ARM=INFO[i]
@@ -65,20 +58,14 @@ for i in arms:
         y, X = patsy.dmatrices(f, df2, return_type='dataframe')
         result = sm.OLS(y, X).fit()
         rho, pval = stats.spearmanr(df2["ARM"], df2["IMS"])
-        #if pval < 0.01:
-        #c["TCGA Leuk. Frac."] = -math.log(pval, 2)
-        #else:
-        #       c=0
-        #p_1[i] = c
+
         print "TCGA spearman", i, rho, pval
         print result.summary()
         print "WTF", i, result.pvalues[1]
 
-        #if float(result.pvalues[1]) < 0.05:
         c["TCGA Leuk. Frac."] = -math.log(float(result.pvalues[1]), 10)
         p_1[i] = c
 
-        #df3 = df2[df2["SMK"] == "Lifelong Non-Smoker"]
         df3 = df2[df2["TMB"].astype(float) > 0]
         if i in "6p":
                 gain = df3[df3["ARM"] == 1]
@@ -111,6 +98,7 @@ for i in arms:
                 plt.savefig('Analysis/TCR/'+str(i)+'_sm_IMS.pdf', bbox_inches='tight')
                 plt.show()
                 plt.close()
+                
 TCR=open("Analysis/TCR/TCR_count_SE.txt")
 tcr_total={}
 tcr_se={}
@@ -180,9 +168,6 @@ for i in arms_inv:
 
         print "FUSCC", "chr", i, rho, pval, result.pvalues[1]
 
-        #result = sm.OLS(y, X).fit()
-        #print result.summary()
-        #c["FUSCC TCR RPM"] = model.coef_[0][1]
         c={}
 
         fraction1=(len(cna_ais)-cna_ais.count(0))/len(cna_ais)
@@ -205,12 +190,6 @@ for i in arms_inv:
         t, pval_loss = stats.fisher_exact([[ais_loss, cna_ais.count(0)], [inv_loss, cna_inv.count(0)]])
         print i, pval_loss
 
-        #if pval < 0.01:
-        #       c["FUSCC TCR RPM"] = rho
-        #else:
-        #       c["FUSCC TCR RPM"] = 0
-
-        #if (pval_gain) < 0.05 and (pval_loss < 0.05): 
         p_3[i]=c
         if i in "6p":
                 gain = df3[df3["CNA"] == 1]
@@ -244,6 +223,7 @@ for i in arms_inv:
                 plt.savefig('Analysis/TCR/FUSCC_'+str(i)+'_sm_IMS.pdf', bbox_inches='tight')
                 plt.show()
                 plt.close()
+                
 fraction = pd.read_csv("Analysis/aneuo_arm_immu_scores_fraction.txt", delimiter='\t')
 df = pd.DataFrame({"Gained": fraction["Gained"].values.astype(float), "Lost": fraction["Lost"].values.astype(float)})
 df = df.T
@@ -256,17 +236,10 @@ plt.show()
 plt.close()
 
 data1=pd.DataFrame.from_dict(p_1, orient='columns')
-#data2=pd.DataFrame.from_dict(p_2, orient='columns')
 data3=pd.DataFrame.from_dict(p_3, orient='columns')
-#d=data3.append(data1)
-#data = data3.append(d)
-#data=pd.DataFrame.from_dict(p, orient='columns')
 df2 = pd.DataFrame(data1, columns = ['1p', '1q', '2p', '2q', '3p', '3q', '4p', '4q', '5p', '5q', '6p', '6q', '7p', '7q', '8p', '8q', '9p', '9q', '10p', '10q', '11p', '11q', '12p', '12q', '13q', '14q', '15q', '16p', '16q', '17p', '17q', '18p', '18q', '19p', '19q', '20p', '20q', '21q', '22q'])
 df3 = pd.DataFrame(data3, columns = [' ', '1p', '1q', '2p', '2q', '3p', '3q', '4p', '4q', '5p', '5q', '6p', '6q', '7p', '7q', '8p', '8q', '9p', '9q', '10p', '10q', '11p', '11q', '12p', '12q', '13q', '14q', '15q', '16p', '16q', '17p', '17q', '18p', '18q', '19p', '19q', '20p', '20q', '21q', '22q'])
-#df3=df.append(df2)
-#df3["TCGA Leuk. Frac. loss"] = df3["TCGA Leuk. Frac. loss"].values.sort()
-#dd = data1.sort_values(by="TCGA Leuk. Frac.", ascending=False, axis=1)
-#print df2
+
 plt.subplots(figsize=(18,7))
 sns.heatmap(df2, linewidth=1.2, cbar_kws={"shrink": .4, 'label': '-log10(p)', "orientation": "horizontal"})
 plt.savefig('Analysis/TCR/heatmap_arm_tcr_TCGA+FUSCC.pdf', bbox_inches='tight')
