@@ -277,9 +277,8 @@ f = "A ~ B + C"
 y, X = patsy.dmatrices(f, df2, return_type='dataframe')
 print "focal AIS vs MIA vs ADC"
 result = sm.OLS(y, X).fit()
-print result.params
 print result.summary()
-print len(df2["B"])
+
 ### plotting correlation of focal CNA with purity. ###
 
 plt.scatter(df2["C"][df2["A"].astype(float) == 2], df2["B"][df2["A"].astype(float) == 2], color='slateblue', alpha=1, s=50, label='LUAD')
@@ -311,8 +310,7 @@ louis, pc = ssm.fdrcorrection(pvals, alpha=0.05)
 df = pd.DataFrame({"A": genelist['gene'], "B":genelist['pvalue'], "C": pc})
 Genes = df['A'].loc[df['B'].astype(float) < 0.05]
 focal_MUT={}; focal_name={}; gd_name={}
-arm_MUT={}; arm_name={}
-#maf=open("m2/consensus_wStrelka.lite.maf")
+arm_MUT={}; arm_name={}a
 
 maf=open("Analysis/mutation/all_merged_alteration.txt")
 for line in (raw.strip().split('\t') for raw in maf):
