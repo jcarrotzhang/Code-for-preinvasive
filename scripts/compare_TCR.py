@@ -24,59 +24,11 @@ AIS=[];MIA=[];RNA_AIS=[];RNA_normal=[];RNA_rec=[];RNA_norec=[]
 subclonal_samples=[]; clonal_samples=[]; sub_samples=[]; c_samples=[]
 hlaloh=open("Analysis/HLA/HLA_analysis_output_2.txt")
 batch_info=open("batch_info.txt")
-
-TMB={}
-tmb=open("Analysis/TMB/sample_TMB_all.txt")
-for line in (raw.strip().split("\t") for raw in tmb):
-        TMB[line[1]]=line[2]
         
 to_exclude_bach=["CHG019733", "CHG019540","CHG019681","CHG018352","CHG019764","CHG019781","CHG020285","CHG021801","CHG021772","CHG021050","CHG019679","CHG020845", "CHG019539", "CHG019682", "CHG018351", "CHG019765", "CHG019780", "CHG020284", "CHG021802", "CHG021771", "CHG021049", "CHG019680", "CHG020844"]
 for line in (raw.strip().split('\t') for raw in batch_info):
         if line[4] == "3":
                 to_exclude_bach.append(line[0])
-
-rna={}
-RNAlist=open("Analysis/samplelist_Recurrence_status.txt")
-for line in (raw.strip().split('\t') for raw in RNAlist):
-        RNA=line[0]
-        DNA=line[2]
-        rna[RNA]=DNA
-        rna[DNA]=RNA
-        rna[line[1]]=line[3]
-
-        if RNA not in to_exclude_bach:
-                if "NA" in line[5]:
-                        RNA_AIS.append(RNA)
-                        RNA_normal.append(line[1])
-                if "1" in line[5]:
-                        RNA_rec.append(RNA)
-                        RNA_normal.append(line[1])
-                if "0" in line[5]:
-                        RNA_norec.append(RNA)
-                        RNA_normal.append(line[1])
-
-Purity=open("Analysis/GD/absolute_GD.txt")
-puri={}
-LOH={}
-for line in (raw.strip().split('\t') for raw in Purity):
-        if "sample" not in line[0]:
-                sample=line[0]
-                purity = line[3]
-                puri[rna[sample]]=purity
-                if sample in loh:
-                        LOH[rna[sample]]="HLALOH"
-                else:
-                        LOH[rna[sample]]="HLAWT"
-
-mutation={}
-maf=open("m2/consensus_wStrelka.lite.maf")
-for line in (raw.strip().split('\t') for raw in maf):
-        if ("#" not in line[0]) and ("Hugo_Symbol" not in line[0]):
-                sample=line[9]
-                gene=line[0]
-                if "EGFR" in gene:
-                        if sample in rna:
-                                mutation[rna[sample]]=gene
 
 C={}
 rna_count=open("MIXCR/count_RNA_all.txt")
@@ -85,6 +37,7 @@ for line in (raw.strip().split('\t') for raw in rna_count):
         count=line[1]
         #if sample in rna:
         C[sample]=count
+        
 ### find clone count per type. ###
 def find_clone(clone_count):
         a=[]
@@ -126,15 +79,6 @@ def total_count(clone_count):
                         if (i in puri):
                                 if (float(puri[i]) < 0.8) and (float(puri[i]) > 0.2):
                                         clone=np.array(clone).astype(int)
-                                        #RPM = clone.sum()/float(C[i])*1000000
-                                        #j = [n for n in clone if n >= 5]
-                                        #print j
-
-                                        #if j >0:
-                                        #p = 1-float(puri[i])
-                                        #fr = clone.sum()/p
-                                        #RPM = fr/float(C[i])*1000000
-                                                #t_RPM=RPM/(1-float(puri[i]))   ### not just add RPM but also normalize with tumor purity. ###
                                         RPM = clone.sum()/float(C[i])*1000000
                                         c_tcr[i]=RPM
                         else:
@@ -142,21 +86,9 @@ def total_count(clone_count):
                                         clone=np.array(clone).astype(int)
                                         RPM = clone.sum()/float(C[i])*1000000
                                         c_tcr[i]=RPM
-                                #else:
-                                #       c_tcr[i]=np.nan
-                                        #clone=np.array(clone).astype(int)
-                                        #RPM = clone.sum()/float(C[i])*1000000
-                                        #c_tcr[i]=RPM
-                        #else:
-                        #       clone=np.array(clone).astype(int)
-                        #       RPM = clone.sum()/float(C[i])*1000000
-                        #       c_tcr[i]=RPM
 
                 else:
                         print "nothing", i
-                #       c_tcr[i]=0
-                #if c_tcr[i] == 0:
-                #       print i
 
         return c_tcr
 def entropy(clone_count):
@@ -164,25 +96,16 @@ def entropy(clone_count):
         for i in clone_count:
                 clone=clone_count[i].split(";")
                 if (len(clone) > 1):
-                        #if (len(clone) > 9):
-                        #       clone=np.array(clone).astype(int)[0:10]
-                        #else:
+
                         clone=np.array(clone).astype(int)
                         RPM=[]
                         for c in clone:
                                 if c > 4:
-                                        #RPM.append(c/float(C[i])*1000000)
                                         RPM.append(c)
-                                        #RPM = [c/float(C[i])*1000000 for c in clone]
+                                 
                         if (len(RPM) > 9):
-                                #if (np.array(RPM).astype(int)).sum() > 50:
-                                        #if len(RPM) > 9:
                                         entropy=stats.entropy(RPM[0:10])
-                                        #entropy=stats.entropy(RPM)
                                         Hn=entropy
-                                        #else:
-                                        #entropy=stats.entropy(RPM)  ### change to use the RPM value for SE. ### 
-                                        #Hn=entropy/np.log(len(RPM))
                                         SE_tcr[i]=Hn
 
                                         if i in RNA_normal:
@@ -193,8 +116,7 @@ def entropy(clone_count):
                                                 print "ADC", i, RPM, entropy, Hn
                                         if i in RNA_norec:
                                                 print "ADC", i, RPM, entropy, Hn
-                        #else:
-                        #       SE_tcr[i]=1
+
         return SE_tcr
 def read_tcr(tcr):
         tcr_file=open(tcr)
@@ -205,7 +127,7 @@ def read_tcr(tcr):
         for line in (raw.strip().split('\t') for raw in tcr_file):
                 if "cloneId" not in line[0]:
                         if ("TRA" in line[5]) or ("TRB" in line[5]):
-                                #if "TGCAGTGCTAGAGAGTCGACTAGCGATCCAAAAAATGAGCAGTTCTTC" not in line[3]:
+                              
                                 if int(line[1]) > 0:
                                         Count.append(str(line[1]))
 
@@ -260,6 +182,7 @@ for i in array:
         out=str(i)+"\t"+"\t".join(array[i].split(";"))
         print >>output, out
 output.close()
+
 type_count, num = find_clone(clone_count_normal)
 type_count = add_type(type_count, num, samplearray_normal)
 array = creat_array(type_count, num, samplearray_normal)
@@ -307,7 +230,6 @@ for i in c_tcr_AISMIA:
                         out=str(i)+"\t"+str(rna[i])+"\tAIS/MIA\t"+str(float(c_tcr_AISMIA[i]))+"\t"+str("NA")+"\t"+str(len(clone_count_AISMIA[i].split(";")))+"\t"+puri[i]+"\t"+LOH[i]
                         print >>output, out
 
-
 for i in c_tcr_norec:
         if i in SE_tcr_norec:
                         out=str(i)+"\t"+str(rna[i])+"\tADC noREC\t"+str(float(c_tcr_norec[i]))+"\t"+str(SE_tcr_norec[i])+"\t"+str(len(clone_count_norec[i].split(";")))+"\t"+puri[i]+"\t"+LOH[i]
@@ -325,14 +247,6 @@ for i in c_tcr_rec:
                         out=str(i)+"\t"+str(rna[i])+"\tADC REC\t"+str(float(c_tcr_rec[i]))+"\t"+str("NA")+"\t"+str(len(clone_count_rec[i].split(";")))+"\t"+puri[i]+"\t"+LOH[i]
                         print >>output, out
 
-
-#se_a=np.array(se_a).astype(int)
-#se_b=np.array(se_b).astype(int)
-#se_c=np.array(se_c).astype(int)
-#a_t, a_prob = mannwhitneyu(se_a, se_b)
-#b_t, b_prob = mannwhitneyu(se_a, se_c)
-#print "T cell clone types", a_t, a_prob, b_t, b_prob, np.mean(se_a), np.mean(se_b), np.mean(se_c)
-
 output.close()
 
 ### test TCR richness and clonality ###
@@ -343,9 +257,6 @@ AISMIA = df1[df1["type"] == "AIS/MIA"]
 ADC_norec = df1[df1["type"] == "ADC noREC"]
 ADC_rec = df1[df1["type"] == "ADC REC"]
 ADC =  df1[(df1["type"] == "ADC noREC") | (df1["type"] == "ADC REC")]
-
-#Htest_inv=np.concatenate((ADC_norec["SE_H"].dropna().values, ADC_rec["SE_H"].dropna().values), axis=0)
-#total_inv=np.concatenate((ADC_norec["total_TCR_count"].dropna().values, ADC_rec["total_TCR_count"].dropna().values), axis=0)
 
 h_t, h_prob_a = mannwhitneyu(AISMIA["SE_H"].dropna().values, ADC["SE_H"].dropna().values)
 s_t, s_prob_a = mannwhitneyu(AISMIA["total_TCR_count"].values, ADC["total_TCR_count"].values)
