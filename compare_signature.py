@@ -90,6 +90,7 @@ a_t, a_prob = mannwhitneyu(ais_apo, mia_apo)
 m_t, m_prob = mannwhitneyu(ais_apo, inv_apo)
 i_t, i_prob = mannwhitneyu(mia_apo, inv_apo)
 print "apobec", a_t, a_prob, m_t, m_prob, i_t, i_prob
+
 ### apobec excluding smokers. ###
 
 ais_apo=[]
@@ -146,19 +147,7 @@ m_t, m_prob = mannwhitneyu(ais_smk, inv_smk)
 i_t, i_prob = mannwhitneyu(mia_smk, inv_smk)
 print "smoking", a_t, a_prob, m_t, m_prob, i_t, i_prob
 
-### mutation correlation with CNA. ###
-
-genelist=open("Analysis/mutation/sig_dif_AIS_INV_h.csv")
-Genes=[]
-genelist=pd.read_csv("Analysis/mutation/sig_dif_AIS_INV_h.csv", delimiter='\t')
-pvals=genelist['pvalue'].astype(float)
-df = pd.DataFrame({"A": genelist['gene'], "B":genelist['pvalue']})
-Genes = df['A'].loc[df['B'].astype(float) < 0.05]
-#Genes = df['A'].loc[df['B'].astype(float) < 1]
-apo_MUT={}; apo_name={}
-tmb_MUT={}; tmb_name={}
-TMB={}
-### find TMB in mutatn samples. ###
+### find TMB in mutant samples. ###
 
 tmb=open("Analysis/TMB/sample_TMB_all.txt")
 for line in (raw.strip().split('\t') for raw in tmb):
@@ -233,9 +222,7 @@ for i in apo_MUT:
         #if t > 0:
         output=str(i)+"\t"+str(-math.log(prob, 10))+"\t"+str(prob)+"\t"+str(apo_WT[i])+"\t"+str(apo_MUT[i])+"\t"+str(np.mean(np.array(array_f_m).astype(float)))+"\t"+str(mf)
         print >>OUT1, output
-        #else:
-        #       output=str(i)+"\t"+str(0)+"\t"+str(apo_WT[i])+"\t"+str(apo_MUT[i])+"\t"+str(np.mean(np.array(array_f_m).astype(float)))+"\t"+str(mf)
-        #       print >>OUT1, output
+
 
 for i in tmb_MUT:
         array_f_m= tmb_MUT[i].split(";")
@@ -247,8 +234,6 @@ for i in tmb_MUT:
         #if t > 0:
         output=str(i)+"\t"+str(-math.log(prob, 10))+"\t"+str(prob)+"\t"+str(tmb_WT[i])+"\t"+str(tmb_MUT[i])+"\t"+str(np.mean(np.array(array_f_m).astype(float)))+"\t"+str(mf)
         print >>OUT2, output
-        #else:
-        #       output=str(i)+"\t"+str(0)+"\t"+str(tmb_WT[i])+"\t"+str(tmb_MUT[i])+"\t"+str(np.mean(np.array(array_f_m).astype(float)))+"\t"+str(mf)
-        #       print >>OUT2, output
+
 OUT1.close()
 OUT2.close()
