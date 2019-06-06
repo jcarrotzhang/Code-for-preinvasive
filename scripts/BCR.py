@@ -91,7 +91,7 @@ for sample in sub:
                 if (sample in top_clone) and (mn[sample] in n_top_clone):
                         t.append(float(top_clone[sample]))
                         n.append(float(n_top_clone[mn[sample]]))
-                        print "WHY", float(top_clone[sample]), float(n_top_clone[mn[sample]])
+                        
 nn=np.array(n)
 tt=np.array(t)
 a_t, a_prob = stats.ttest_rel(nn, tt)
@@ -103,7 +103,7 @@ for sample in sub:
                 if (sample in top_clone) and (mn[sample] in n_top_clone):
                         t.append(float(top_clone[sample]))
                         n.append(float(n_top_clone[mn[sample]]))
-                        print "WHY", float(top_clone[sample]), float(n_top_clone[mn[sample]])
+                        
 
 nn=np.array(n)
 tt=np.array(t)
