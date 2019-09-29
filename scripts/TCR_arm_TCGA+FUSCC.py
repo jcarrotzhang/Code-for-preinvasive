@@ -61,7 +61,6 @@ for i in arms:
 
         print "TCGA spearman", i, rho, pval
         print result.summary()
-        print "WTF", i, result.pvalues[1]
 
         c["TCGA Leuk. Frac."] = -math.log(float(result.pvalues[1]), 10)
         p_1[i] = c
